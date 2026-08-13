@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #05070b;
+  color: #e8edf7;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(65, 255, 180, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(65, 255, 180, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.glow {
+  box-shadow: 0 0 45px rgba(42, 255, 171, 0.08);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
