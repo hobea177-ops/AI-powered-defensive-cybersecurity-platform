@@ -30,16 +30,26 @@ type AnalysisResult = {
   score: number;
   findings: Finding[];
   summary: string;
+  aiReasoning?: string;
+  aiEnabled?: boolean;
+  analyzedUrl?: string;
+  riskLevel?: "LOW" | "MEDIUM" | "HIGH";
 };
 
-type Section = "defensive" | "ai" | "risk" | null;
+type Section =
+  | "defensive"
+  | "ai"
+  | "risk"
+  | null;
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] =
+    useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
-  const [openSection, setOpenSection] = useState<Section>(null);
+  const [openSection, setOpenSection] =
+    useState<Section>(null);
 
   async function analyze() {
     const cleanUrl = url.trim();
@@ -70,18 +80,24 @@ export default function Home() {
       try {
         data = await response.json();
       } catch {
-        throw new Error("The server returned an invalid response.");
+        throw new Error(
+          "The server returned an invalid response."
+        );
       }
 
       if (!response.ok) {
-        throw new Error(data?.error || "Analysis failed.");
+        throw new Error(
+          data?.error || "Analysis failed."
+        );
       }
 
       if (
         typeof data?.score !== "number" ||
         !Array.isArray(data?.findings)
       ) {
-        throw new Error("Invalid analysis response.");
+        throw new Error(
+          "Invalid analysis response."
+        );
       }
 
       setResult({
@@ -90,6 +106,14 @@ export default function Home() {
         summary:
           data.summary ||
           "تم إكمال التحليل الدفاعي للرابط.",
+        aiReasoning:
+          data.aiReasoning ||
+          "لم يتم توفير تحليل AI.",
+        aiEnabled:
+          Boolean(data.aiEnabled),
+        analyzedUrl:
+          data.analyzedUrl || cleanUrl,
+        riskLevel: data.riskLevel,
       });
     } catch (err) {
       const message =
@@ -134,7 +158,9 @@ export default function Home() {
       (item) => item.severity === "Low"
     ).length ?? 0;
 
-  const riskLevel = getRiskLevel(result?.score ?? 0);
+  const riskLevel = getRiskLevel(
+    result?.score ?? 0
+  );
 
   return (
     <main className="cyber-grid min-h-screen bg-[#020708] text-slate-100">
@@ -159,16 +185,19 @@ export default function Home() {
 
           <div className="flex items-center gap-2 text-xs text-emerald-300">
             <Activity size={15} />
+
             <span className="hidden sm:inline">
               SYSTEM ONLINE
             </span>
+
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" />
           </div>
         </div>
       </header>
 
-      {/* HERO */}
+      {/* MAIN */}
       <section className="mx-auto max-w-7xl px-6 py-14 md:py-20">
+        {/* HERO */}
         <div className="max-w-4xl">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1 text-xs text-emerald-300">
             <BrainCircuit size={14} />
@@ -185,9 +214,9 @@ export default function Home() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
-            منصة CyberShield AI للتحليل الدفاعي للأمن السيبراني،
-            مع محرك تحليل متقدم لفهم مؤشرات الخطر وتقديم
-            تقييم واضح للرابط.
+            منصة CyberShield AI للتحليل الدفاعي للأمن
+            السيبراني، مع محرك ذكاء اصطناعي لتحليل
+            النتائج وإعطاء تقييم واضح للمخاطر.
           </p>
         </div>
 
@@ -256,8 +285,8 @@ export default function Home() {
           )}
 
           <div className="mt-4 text-xs text-slate-600">
-            Defensive URL inspection only. No exploitation is
-            performed.
+            Defensive URL inspection only. No
+            exploitation is performed.
           </div>
         </div>
 
@@ -268,7 +297,9 @@ export default function Home() {
             title="Defensive Analysis"
             description="Safe-by-design security analysis."
             active={!!result}
-            open={openSection === "defensive"}
+            open={
+              openSection === "defensive"
+            }
             onClick={() =>
               toggleSection("defensive")
             }
@@ -280,7 +311,9 @@ export default function Home() {
             description="Explain security findings clearly."
             active={!!result}
             open={openSection === "ai"}
-            onClick={() => toggleSection("ai")}
+            onClick={() =>
+              toggleSection("ai")
+            }
           />
 
           <Feature
@@ -289,80 +322,95 @@ export default function Home() {
             description="Prioritize important security findings."
             active={!!result}
             open={openSection === "risk"}
-            onClick={() => toggleSection("risk")}
+            onClick={() =>
+              toggleSection("risk")
+            }
           />
         </div>
 
-        {/* DEFENSIVE ANALYSIS DETAILS */}
-        {result && openSection === "defensive" && (
-          <ExpandablePanel
-            icon={<LockKeyhole />}
-            title="Defensive Analysis"
-            subtitle="Technical indicators detected in the submitted URL."
-          >
-            <div className="grid gap-4 md:grid-cols-3">
-              <StatCard
-                label="High"
-                value={highCount}
-                description="High-priority indicators"
-              />
+        {/* DEFENSIVE ANALYSIS */}
+        {result &&
+          openSection === "defensive" && (
+            <ExpandablePanel
+              icon={<LockKeyhole />}
+              title="Defensive Analysis"
+              subtitle="Technical indicators detected in the submitted URL."
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <StatCard
+                  label="High"
+                  value={highCount}
+                  description="High-priority indicators"
+                />
 
-              <StatCard
-                label="Medium"
-                value={mediumCount}
-                description="Indicators requiring review"
-              />
+                <StatCard
+                  label="Medium"
+                  value={mediumCount}
+                  description="Indicators requiring review"
+                />
 
-              <StatCard
-                label="Low"
-                value={lowCount}
-                description="Low-priority indicators"
-              />
-            </div>
+                <StatCard
+                  label="Low"
+                  value={lowCount}
+                  description="Low-priority indicators"
+                />
+              </div>
 
-            <div className="mt-6 space-y-3">
-              {result.findings.map(
-                (finding, index) => (
-                  <FindingCard
-                    key={`${finding.title}-${index}`}
-                    finding={finding}
-                  />
-                )
-              )}
-            </div>
-          </ExpandablePanel>
-        )}
+              <div className="mt-6 space-y-3">
+                {result.findings.map(
+                  (finding, index) => (
+                    <FindingCard
+                      key={`${finding.title}-${index}`}
+                      finding={finding}
+                    />
+                  )
+                )}
+              </div>
+            </ExpandablePanel>
+          )}
 
-        {/* AI REASONING */}
+        {/* REAL AI REASONING */}
         {result && openSection === "ai" && (
           <ExpandablePanel
             icon={<BrainCircuit />}
             title="AI Reasoning"
-            subtitle="Interpretation of the security findings."
+            subtitle="AI-generated defensive interpretation."
           >
             <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[.03] p-5">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-emerald-400/10 p-2 text-emerald-300">
-                  <BrainCircuit size={22} />
-                </div>
-
-                <div>
-                  <div className="font-semibold">
-                    Security Interpretation
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-emerald-400/10 p-2 text-emerald-300">
+                    <BrainCircuit size={22} />
                   </div>
 
-                  <div className="text-xs text-slate-500">
-                    Defensive reasoning layer
+                  <div>
+                    <div className="font-semibold">
+                      Groq AI Security Analysis
+                    </div>
+
+                    <div className="text-xs text-slate-500">
+                      Defensive reasoning layer
+                    </div>
                   </div>
                 </div>
+
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    result.aiEnabled
+                      ? "border-emerald-400/20 bg-emerald-400/5 text-emerald-300"
+                      : "border-yellow-400/20 bg-yellow-400/5 text-yellow-300"
+                  }`}
+                >
+                  {result.aiEnabled
+                    ? "AI ONLINE"
+                    : "AI FALLBACK"}
+                </span>
               </div>
 
-              <p className="mt-5 leading-7 text-slate-300">
-                {getReasoning(
-                  result.score,
-                  result.findings
-                )}
-              </p>
+              <div className="mt-6 whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-5 text-sm leading-7 text-slate-300">
+                {result.aiReasoning ||
+                  "لا يوجد تحليل AI متاح حاليًا."}
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -382,68 +430,71 @@ export default function Home() {
             </div>
 
             <div className="mt-5 rounded-xl border border-yellow-400/10 bg-yellow-400/[.02] p-4 text-sm leading-6 text-slate-400">
-              ملاحظة: هذا التفسير مبني على نتائج الفحص
-              الحالية، ولا يعتبر إثباتًا بأن الموقع ضار أو
-              آمن بشكل قطعي.
+              ملاحظة: تحليل الذكاء الاصطناعي مبني على
+              المؤشرات التي تم اكتشافها، ولا يعتبر إثباتًا
+              قطعيًا بأن الموقع ضار أو آمن.
             </div>
           </ExpandablePanel>
         )}
 
         {/* RISK SCORING */}
-        {result && openSection === "risk" && (
-          <ExpandablePanel
-            icon={<AlertTriangle />}
-            title="Risk Scoring"
-            subtitle="Prioritization based on detected indicators."
-          >
-            <div className="flex flex-col gap-8 md:flex-row md:items-center">
-              <div className="relative flex h-44 w-44 shrink-0 items-center justify-center rounded-full border-8 border-emerald-300/20">
-                <div className="text-center">
-                  <div className="text-5xl font-black">
-                    {result.score}
+        {result &&
+          openSection === "risk" && (
+            <ExpandablePanel
+              icon={<AlertTriangle />}
+              title="Risk Scoring"
+              subtitle="Prioritization based on detected indicators."
+            >
+              <div className="flex flex-col gap-8 md:flex-row md:items-center">
+                <div className="relative flex h-44 w-44 shrink-0 items-center justify-center rounded-full border-8 border-emerald-300/20">
+                  <div className="text-center">
+                    <div className="text-5xl font-black">
+                      {result.score}
+                    </div>
+
+                    <div className="text-xs text-slate-500">
+                      / 100
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <div className="text-sm text-slate-500">
+                    Current risk classification
                   </div>
 
-                  <div className="text-xs text-slate-500">
-                    / 100
+                  <div className="mt-2 text-3xl font-bold text-emerald-300">
+                    {result.riskLevel
+                      ? result.riskLevel
+                      : riskLevel}
                   </div>
+
+                  <p className="mt-4 leading-7 text-slate-400">
+                    {getRiskDescription(
+                      result.score
+                    )}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex-1">
-                <div className="text-sm text-slate-500">
-                  Current risk classification
-                </div>
+              <div className="mt-8 grid gap-3 md:grid-cols-3">
+                <RiskLegend
+                  title="Low"
+                  range="0 - 29"
+                />
 
-                <div className="mt-2 text-3xl font-bold text-emerald-300">
-                  {riskLevel}
-                </div>
+                <RiskLegend
+                  title="Medium"
+                  range="30 - 69"
+                />
 
-                <p className="mt-4 leading-7 text-slate-400">
-                  {getRiskDescription(
-                    result.score
-                  )}
-                </p>
+                <RiskLegend
+                  title="High"
+                  range="70 - 100"
+                />
               </div>
-            </div>
-
-            <div className="mt-8 grid gap-3 md:grid-cols-3">
-              <RiskLegend
-                title="Low"
-                range="0 - 29"
-              />
-
-              <RiskLegend
-                title="Medium"
-                range="30 - 69"
-              />
-
-              <RiskLegend
-                title="High"
-                range="70 - 100"
-              />
-            </div>
-          </ExpandablePanel>
-        )}
+            </ExpandablePanel>
+          )}
 
         {/* SECURITY REPORT */}
         {result && (
@@ -467,7 +518,8 @@ export default function Home() {
                   </p>
 
                   <p className="mt-1 max-w-full break-all text-sm text-emerald-300/80">
-                    {url}
+                    {result.analyzedUrl ||
+                      url}
                   </p>
                 </div>
 
@@ -480,19 +532,37 @@ export default function Home() {
               </div>
             </div>
 
-            {/* SUMMARY */}
             <div className="p-6">
+              {/* SUMMARY */}
               <div className="rounded-2xl border border-white/10 bg-white/[.02] p-5">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <CheckCircle2
                     size={18}
                     className="text-emerald-300"
                   />
+
                   Analysis Summary
                 </div>
 
                 <p className="mt-3 leading-7 text-slate-300">
                   {result.summary}
+                </p>
+              </div>
+
+              {/* AI SUMMARY */}
+              <div className="mt-5 rounded-2xl border border-emerald-400/10 bg-emerald-400/[.02] p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <BrainCircuit
+                    size={18}
+                    className="text-emerald-300"
+                  />
+
+                  AI Security Interpretation
+                </div>
+
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-300">
+                  {result.aiReasoning ||
+                    "AI reasoning unavailable."}
                 </p>
               </div>
 
@@ -547,7 +617,7 @@ export default function Home() {
 }
 
 /* =========================================================
-   FEATURE CARD
+   FEATURE
 ========================================================= */
 
 function Feature({
@@ -582,7 +652,7 @@ function Feature({
         </div>
 
         {active && (
-          <div className="text-slate-500 transition group-hover:text-emerald-300">
+          <div className="text-slate-500 group-hover:text-emerald-300">
             {open ? (
               <ChevronUp size={19} />
             ) : (
@@ -612,7 +682,7 @@ function Feature({
 }
 
 /* =========================================================
-   EXPANDABLE PANEL
+   PANEL
 ========================================================= */
 
 function ExpandablePanel({
@@ -650,7 +720,7 @@ function ExpandablePanel({
 }
 
 /* =========================================================
-   FINDING CARD
+   FINDING
 ========================================================= */
 
 function FindingCard({
@@ -692,7 +762,7 @@ function FindingCard({
 }
 
 /* =========================================================
-   STAT CARD
+   STAT
 ========================================================= */
 
 function StatCard({
@@ -789,7 +859,7 @@ function getRiskLevel(score: number) {
 
 function getRiskDescription(score: number) {
   if (score >= 70) {
-    return "تم العثور على مؤشرات ذات أولوية عالية. تعامل مع الرابط بحذر ولا تدخل بيانات حساسة قبل التحقق من مصدره.";
+    return "تم العثور على مؤشرات ذات أولوية عالية. تعامل مع الرابط بحذر وتحقق من مصدره قبل استخدامه.";
   }
 
   if (score >= 30) {
@@ -808,40 +878,5 @@ function getPriorityText(score: number) {
     return "Medium priority. Review the findings and verify the domain.";
   }
 
-  return "Low priority based on the current basic URL indicators.";
-}
-
-/* =========================================================
-   REASONING ENGINE
-========================================================= */
-
-function getReasoning(
-  score: number,
-  findings: Finding[]
-) {
-  if (findings.length === 0) {
-    return "لم يتم العثور على مؤشرات أمنية ضمن البيانات التي تم فحصها.";
-  }
-
-  const high = findings.filter(
-    (item) => item.severity === "High"
-  ).length;
-
-  const medium = findings.filter(
-    (item) => item.severity === "Medium"
-  ).length;
-
-  const low = findings.filter(
-    (item) => item.severity === "Low"
-  ).length;
-
-  if (high > 0) {
-    return `التحليل يشير إلى وجود ${high} مؤشر عالي الخطورة من بين ${findings.length} مؤشرات مكتشفة. لذلك تم رفع مستوى المخاطر إلى ${score}/100. يوصى بمراجعة المؤشرات عالية الخطورة أولًا والتحقق من مصدر الرابط قبل استخدامه.`;
-  }
-
-  if (medium > 0) {
-    return `تم اكتشاف ${medium} مؤشر متوسط الخطورة بالإضافة إلى ${low} مؤشر منخفض. النتيجة الحالية ${score}/100 تعكس وجود إشارات تستحق التحقق، لكنها لا تكفي وحدها لإثبات أن الموقع ضار.`;
-  }
-
-  return `تم اكتشاف مؤشرات منخفضة الخطورة فقط. النتيجة الحالية ${score}/100 منخفضة نسبيًا، لكن الفحص الحالي يعتمد على خصائص الرابط ولا يستطيع إثبات سلامة الموقع بالكامل.`;
+  return "Low priority based on the current URL indicators.";
 }
